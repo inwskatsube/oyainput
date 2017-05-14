@@ -16,6 +16,7 @@ MozcやAnthy、libkccなど、主要な日本語入力システムに対応し�
 
     $ sudo apt-get install -y make gcc
 
+
 # 起動方法
 
     $ oyainput [username]
