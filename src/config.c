@@ -432,7 +432,7 @@ __u16 keyname_to_code(char* key_name){
 		}
 	}
 	if(key_name != NULL && *key_name != 0) {
-		printf("Unkown key name, %s\n", key_name);
+		printf("Unknown key name, %s\n", key_name);
 	}
 	return 0;
 }
@@ -446,7 +446,7 @@ int mojiname_to_code(char* moji_name){
 		}
 	}
 	if(moji_name != NULL && *moji_name != 0) {
-		printf("Unkown moji name, %s\n", moji_name);
+		printf("Unknown moji name, %s\n", moji_name);
 	}
 	return 0;
 }
