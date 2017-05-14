@@ -405,7 +405,7 @@ Boolean save_config(char *path)
 	fprintf(fp, "# レイアウト名。(現在は NICOLA 固定)\n");
 	fprintf(fp, "#LAYOUT=NICOLA\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "# ON状態とOFF状態を自動認識させる場合。現在はfcitxのみ)\n");
+	fprintf(fp, "# ON状態とOFF状態を自動認識させる場合。現在はfcitxのみ\n");
 	fprintf(fp, "#IM=fcitx\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "# 日本語 ON/OFFキー\n");
