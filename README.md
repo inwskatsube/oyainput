@@ -21,7 +21,7 @@ Note. You must be able to run sudo, or need to be root with su command.
 
 # Usage
 
-  $ oyainput [username]
+    $ oyainput [username]
 
 
 # Configure
