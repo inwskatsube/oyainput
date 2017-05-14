@@ -431,6 +431,9 @@ __u16 keyname_to_code(char* key_name){
 			return p->value;
 		}
 	}
+	if(key_name != NULL && *key_name != 0) {
+		printf("Unkown key name, %s\n", key_name);
+	}
 	return 0;
 }
 
@@ -441,6 +444,9 @@ int mojiname_to_code(char* moji_name){
 		if (strcmp(moji_name, p->name)==0) {
 			return p->value;
 		}
+	}
+	if(moji_name != NULL && *moji_name != 0) {
+		printf("Unkown moji name, %s\n", moji_name);
 	}
 	return 0;
 }
