@@ -43,7 +43,6 @@ void set_imtype(char* imname) {
 	}
 }
 
-
 void set_onkey(__u16 kc) {
 	on_keycode = kc;
 }
@@ -172,7 +171,8 @@ int main(int argc, char *argv[]) {
 	seteuid(euid);
 
 	fd_set rfds;
-	struct timeval tv;
+	//struct timeval tv;
+	struct timespec tv;
 	int retval;
 	Boolean ctrl_pressed  = FALSE;
 	Boolean shift_pressed = FALSE;
@@ -183,16 +183,23 @@ int main(int argc, char *argv[]) {
 	do_terminate = 0;
 	printf("oyainput running...(CTRL+C to exit)\n");
 
+	sigset_t sigset;
+	sigemptyset(&sigset);
+	
 	while(!do_terminate){
 
 		FD_ZERO(&rfds);
 		FD_SET(fdi, &rfds);
 
-		tv.tv_sec  = 10;
-		tv.tv_usec = 0;
+		tv.tv_sec  = 0;
+		tv.tv_nsec = 1000000;
 
-		retval = select(fdi+1, &rfds, NULL, NULL, &tv);
-		if(retval == -1 || retval == 0){
+		retval = pselect(fdi+1, &rfds, NULL, NULL, &tv, &sigset);
+		if(retval == -1) {
+			continue;
+		}
+		if (retval == 0) {
+			update_event_timer();
 			continue;
 		}
 		

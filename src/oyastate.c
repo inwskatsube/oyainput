@@ -6,6 +6,7 @@
 
 #include "common.h"
 #include "functions.h"
+#include "oyastate.h"
 
 /* ノーマル状態での配列定義 */
 KEYMAP_INFO oyakanaTableRomajiDefault[] = {
@@ -337,7 +338,8 @@ static __u16	_repeat_oyayubi; //	リピートする親指キー記憶するた�
 static long _time1 = 0L; //	イベント発生時刻を記憶するための変数
 static long _time2 = 0L; //	イベント発生時刻を記憶するための変数
 static long _event_timer = 0L; //	時刻の経過に伴ってリニアにデクリメントされるタイマ変数。値が0になった時点で、ステートマシンに対してタイマイベントを発生する（ワンショット）。なお、ステートマシンに対して簡易ロジックを指定している場合、_event_timerへの値のセットは行われません。
-//long current_time; //	現在時刻をもつ変数
+static long current_time; //	現在時刻をもつ変数
+static long last_time;
 
 // 外部からセットされる変数
 long e_charTime = 200; //	文字->親指同時打鍵検出許容期間（簡易ロジックでは無効）
@@ -348,6 +350,7 @@ long e_nicolaTime = 50; //	親指単独打鍵みなし期間
 __u16 e_loya_keycode = KEY_SPACE; // KEY_MUHENKAN
 __u16 e_roya_keycode = KEY_HENKAN;
 
+static OYAYUBI_EVENT timer_ev;
 
 void set_left_oyakey(__u16 kc) {
 	if (kc != 0) {
@@ -361,7 +364,19 @@ void set_right_oyakey(__u16 kc) {
 	}
 }
 
+void set_char_time(long char_time){
+	if (char_time <= 0 || char_time >= 2000) return;
+	e_charTime = char_time;
+}
+
+void set_oya_time(long oya_time){
+	if (oya_time <= 0 || oya_time >= 2000) return;
+	e_oyaTime = oya_time;
+}
+
+
 void set_nicola_time(long nicola_time){
+	if (nicola_time <= 0 || nicola_time >= 1000) return;
 	e_nicolaTime = nicola_time;
 }
 
@@ -383,6 +398,10 @@ void oyayubi_state_init() {
 	_repeat_oyayubi = 0;
 	_time1 = 0l;
 	_time2 = 0l;
+	_event_timer = 0;
+
+	current_time = get_current_time();
+	last_time = current_time;
 }
 
 Boolean is_moji_key(__u16 code) {
@@ -608,6 +627,7 @@ Boolean is_otherkey_down(OYAYUBI_EVENT ev) {
 	return TRUE;
 }
 
+
 Boolean is_timer(OYAYUBI_EVENT ev) {
 	if (ev.eventType == ET_TIMER) {
 		return TRUE;
@@ -615,12 +635,12 @@ Boolean is_timer(OYAYUBI_EVENT ev) {
 	return FALSE;
 }
 
+
 long get_current_time() {
 	struct timespec ts;
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 	return ts.tv_sec * 1000 + (ts.tv_nsec / 1000000);
 }
-
 
 
 void output_moji(__u16 m) {
@@ -666,6 +686,7 @@ void output_oya_moji(__u16 okey, __u16 mkey) {
 	}
 }
 
+
 Boolean is_acceptable(int keycode) {
 	if(is_moji_key(keycode) ) {
 		return TRUE;
@@ -676,28 +697,34 @@ Boolean is_acceptable(int keycode) {
 	return FALSE;
 }
 
-/*
-Boolean decrement_timer_time(long millis) {
-	if (_event_timer <= 0) {
-		_event_timer = 0l;
-		return FALSE;
+
+void update_event_timer() {
+	
+	current_time = get_current_time();
+	long millis = current_time - last_time;
+
+	if (_event_timer > 0) {
+		_event_timer -= millis;
+		if (_event_timer <= 0) {
+			memset(&timer_ev, 0, sizeof(timer_ev));
+			timer_ev.eventType = ET_TIMER;
+			handle_oyayubi_event(timer_ev);
+		}
 	}
-	_event_timer -= millis;
 	if (_event_timer <= 0) {
-		_event_timer = 0l;
-		return TRUE;
+		_event_timer = 0;
 	}
-	return FALSE;
+	last_time = current_time;
 }
-* */
+
 
 void handle_oyayubi_event(OYAYUBI_EVENT ev) {
-	long current_time = get_current_time();
+	//long current_time = get_current_time();
 	
 	switch(_state) {
 	case STATE_FIRST: // 初期状態
 		
-		//E11	文字キーの押下を検出。	検出した文字キーをmojiにセット。_time1に時刻を記憶。_event_timerにe_charTimeをセット。
+		//E11 文字キーの押下を検出。検出した文字キーをmojiにセット。_time1に時刻を記憶。_event_timerにe_charTimeをセット。
 		if (is_moji_down(ev)) {
 			_moji = ev.keyCode;
 			_time1 = get_current_time();
@@ -706,7 +733,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 		
-		//E12	親指キーの押下を検出。	検出した親指キーをoyayubiにセット。_time2に時刻を記憶。_event_timerにe_oyaTimeをセット。
+		//E12 親指キーの押下を検出。検出した親指キーをoyayubiにセット。_time2に時刻を記憶。_event_timerにe_oyaTimeをセット。
 		if (is_oya_down(ev)) {
 			_oyayubi = ev.keyCode;
 			_time2 = get_current_time();
@@ -718,7 +745,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 
 	case STATE_MOJIHOLD: // 文字キー押下中状態
 		
-		//E21	文字キーのリリースを検出。または、対象外のキー入力を検出	mojiを出力。初期状態に遷移
+		//E21 文字キーのリリースを検出。または、対象外のキー入力を検出。mojiを出力。初期状態に遷移
 		if (is_moji_up(ev) || is_otherkey_down(ev)) {
 			output_moji(_moji);
 			_repeat_moji = 0;
@@ -727,7 +754,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 		
-		//E22	キーボードリピートを検出	mojiを出力。mojiをrepeat_mojiにセット。リピート状態に遷移
+		//E22 キーボードリピートを検出。mojiを出力。mojiをrepeat_mojiにセット。リピート状態に遷移
 		if (is_moji_repeat(ev) || is_oya_repeat(ev)) {
 			output_moji(_moji);
 			_repeat_moji = _moji;
@@ -735,7 +762,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 		
-		//E23	タイマイベントを検出	mojiを出力。mojiをrepeatmojiにセット。リピート状態に遷移。
+		//E23 タイマイベントを検出。mojiを出力。mojiをrepeatmojiにセット。リピート状態に遷移。
 		//簡易ロジックでは、このイベントは発生しません。
 		if (is_timer(ev)) {
 			output_moji(_moji);
@@ -744,7 +771,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 		
-		//E24	親指キーの押下を検出 	検出した親指キーをoyayubiにセット。_time2に時刻を記憶。_event_timerにe-oyaTimeをセット。文字キー親指キー押下中状態に遷移
+		//E24 親指キーの押下を検出。検出した親指キーをoyayubiにセット。_time2に時刻を記憶。_event_timerにe-oyaTimeをセット。文字キー親指キー押下中状態に遷移
 		if (is_oya_down(ev)) {
 			_oyayubi = ev.keyCode;
 			_time2 = get_current_time();
@@ -753,7 +780,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 		
-		//E25	文字キーの押下を検出 	mojiを出力。検出した文字キーをmojiにセット。_time1に時刻を記憶。_event_timerにe-charTimeをセット。文字キー押下中状態に遷移
+		//E25 文字キーの押下を検出。mojiを出力。検出した文字キーをmojiにセット。_time1に時刻を記憶。_event_timerにe-charTimeをセット。文字キー押下中状態に遷移
 		if (is_moji_down(ev)) {
 			output_moji(_moji);
 			_moji = ev.keyCode;
@@ -767,14 +794,14 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 		
 	case STATE_OYAHOLD: // 親指キー押下中状態
 		
-		//E31	親指キーのリピートを検出。oyayubiをrepeat_oyayubiにセット。リピート状態に遷移
+		//E31 親指キーのリピートを検出。oyayubiをrepeat_oyayubiにセット。リピート状態に遷移
 		if (is_oya_repeat(ev)) {
 			_repeat_oyayubi = _oyayubi;
 			_state = STATE_REPEAT;
 			break;
 		}
 
-		//E32	タイマイベントを検出	oyayubiを出力。oyayubiをrepeat_oyayubiにセット。リピート状態に遷移。
+		//E32 タイマイベントを検出。oyayubiを出力。oyayubiをrepeat_oyayubiにセット。リピート状態に遷移。
 		//簡易ロジックでは、このイベントは発生しません。
 		if (is_timer(ev)) {
 			output_oya(_oyayubi);
@@ -782,7 +809,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 
-		//E33	文字キーの押下を検出		検出した文字キーをmojiにセット。moji+oyayubiを出力。oyayubiをrepeat_oyayubiにセット。mojiをrepeat_mojiにセット。リピート状態に遷移
+		//E33 文字キーの押下を検出。検出した文字キーをmojiにセット。moji+oyayubiを出力。oyayubiをrepeat_oyayubiにセット。mojiをrepeat_mojiにセット。リピート状態に遷移
 		if (is_moji_down(ev)) {
 			_moji = ev.keyCode;
 			output_oya_moji(_oyayubi, _moji);
@@ -792,7 +819,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 
-		//E34	親指キーの押下を検出		oyayubiを出力。検出した親指キーをoyayubiにセット。_time2に時刻を記憶。_event_timerにe-oyaTimeをセット。文字キー親指キー押下中状態に遷移
+		//E34 親指キーの押下を検出。oyayubiを出力。検出した親指キーをoyayubiにセット。_time2に時刻を記憶。_event_timerにe-oyaTimeをセット。文字キー親指キー押下中状態に遷移
 		if (is_oya_down(ev)) {
 			output_oya(_oyayubi);
 			_oyayubi = ev.keyCode;
@@ -802,7 +829,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 
-		//E35	親指キーのリリースを検出。または、対象外のキーの押下を検出	oyayubiを出力。初期状態に遷移
+		//E35 親指キーのリリースを検出。または、対象外のキーの押下を検出。oyayubiを出力。初期状態に遷移
 		if (is_oya_up(ev) || is_otherkey_down(ev)) {
 			output_oya(_oyayubi);
 			_repeat_moji = 0;
@@ -815,7 +842,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 
 	case STATE_MOJIOYAHOLD: // 文字キー親指キー押下中状態
 		
-		//E41	キーのリピートを検出(親指キーのみしかあり得ない)	moji+oyayubiを出力。mojiをrepeat_mojiにセット。oyayubiをrepeat_oyayubiにセット。リピート状態に遷移
+		//E41 キーのリピートを検出(親指キーのみしかあり得ない)。moji+oyayubiを出力。mojiをrepeat_mojiにセット。oyayubiをrepeat_oyayubiにセット。リピート状態に遷移
 		if (is_oya_repeat(ev) || is_moji_repeat(ev)) {
 			output_oya_moji(_oyayubi, _moji);
 			_repeat_moji = _moji;
@@ -824,7 +851,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 		
-		//E42	タイマイベントを検出	moji+oyayubiを出力。oyayubiをrepeat_oyayubiにセット。mojiをrepeat_mojiにセット。リピート状態に遷移。
+		//E42 タイマイベントを検出。moji+oyayubiを出力。oyayubiをrepeat_oyayubiにセット。mojiをrepeat_mojiにセット。リピート状態に遷移。
 		//簡易ロジックでは、このイベントは発生しません。
 		if (is_timer(ev)) {
 			output_oya_moji(_oyayubi, _moji);
@@ -834,7 +861,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 		
-		//E43	文字キーの押下を検出し、current_time - _time2 < _time2 - _time1を満たす場合。	mojiを出力。oyayubi+検出した文字を出力。oyayubiをrepeat_oyayubiにセット。検出した文字キーをrepeat_mojiにセット。リピート状態に遷移
+		//E43 文字キーの押下を検出し、current_time - _time2 < _time2 - _time1を満たす場合。mojiを出力。oyayubi+検出した文字を出力。oyayubiをrepeat_oyayubiにセット。検出した文字キーをrepeat_mojiにセット。リピート状態に遷移
 		if (is_moji_down(ev) && (get_current_time() - _time2 < _time2 - _time1)) {
 			output_moji(_moji);
 			output_oya_moji(_oyayubi, ev.keyCode);
@@ -845,7 +872,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 		}
 		
 		
-		//E44	親指キーの押下を検出		moji+oyayubiを出力。検出した親指キーをoyayubiにセット。_time2に時刻を記憶。_event_timerにe-oyaTimeをセット。親指キー押下中状態に遷移
+		//E44 親指キーの押下を検出。moji+oyayubiを出力。検出した親指キーをoyayubiにセット。_time2に時刻を記憶。_event_timerにe-oyaTimeをセット。親指キー押下中状態に遷移
 		if (is_oya_down(ev)) {
 			output_oya_moji(_oyayubi, _moji);
 			_oyayubi = ev.keyCode;
@@ -855,7 +882,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 		
-		//E45	親指キーのリリースを検出。または、対象外のキーの押下を検出	moji+oyayubiを出力。初期状態に遷移
+		//E45 親指キーのリリースを検出。または、対象外のキーの押下を検出 moji+oyayubiを出力。初期状態に遷移
 		if (is_oya_up(ev) || is_otherkey_down(ev)) {
 			output_oya_moji(_oyayubi, _moji);
 			_repeat_moji = 0;
@@ -864,14 +891,14 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}			
 		
-		//E46	文字キーのリリースを検出し、(current_time - _time2 <= e_nicolaTime) && (_time2 - _time1 > current_time - _time2 ) を満たす場合。	mojiを出力。親指キー押下中状態に遷移。oyayubiが維持されていることに注意
+		//E46 文字キーのリリースを検出し、(current_time - _time2 <= e_nicolaTime) && (_time2 - _time1 > current_time - _time2 ) を満たす場合。	mojiを出力。親指キー押下中状態に遷移。oyayubiが維持されていることに注意
 		if (is_moji_up(ev) && (current_time - _time2 <= e_nicolaTime) && (_time2 - _time1 > current_time - _time2)) {
 			output_moji(_moji);
 			_state = STATE_OYAHOLD;
 			break;
 		}
 		else if (is_moji_up(ev)) {
-			//E47	文字キーのリリースを検出。E46の条件を満たさない場合	moji+oyayubiを出力。初期状態に遷移
+			//E47 文字キーのリリースを検出。E46の条件を満たさない場合。moji+oyayubiを出力。初期状態に遷移
 			output_oya_moji(_oyayubi, _moji);
 			_repeat_moji = 0;
 			_repeat_oyayubi = 0;
@@ -879,7 +906,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 		
-		//E48	文字キーの押下を検出し、current_time - _time2 >= _time2 - _time1を満たす場合。	moji+oyayubiを出力。検出した文字キーをmojiにセット。_event_timerにe-charTimeをセット。文字キー押下中状態に遷移
+		//E48 文字キーの押下を検出し、current_time - _time2 >= _time2 - _time1を満たす場合。moji+oyayubiを出力。検出した文字キーをmojiにセット。_event_timerにe-charTimeをセット。文字キー押下中状態に遷移
 		if (is_moji_down(ev) && (current_time - _time2 >= _time2 - _time1)) {
 			output_oya_moji(_oyayubi, _moji);
 			_moji = ev.keyCode;
@@ -892,7 +919,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 
 	case STATE_REPEAT: // リピート中状態
 		
-		//E51	リピートを検出	repeat_oyayubi+repeat_mojiを出力。リピート中状態に遷移。repeat_oyayubiまたはrepeat_mojiのいずれかがセットされていない場合は、セットされている側の単独出力となる
+		//E51 リピートを検出 repeat_oyayubi+repeat_mojiを出力。リピート中状態に遷移。repeat_oyayubiまたはrepeat_mojiのいずれかがセットされていない場合は、セットされている側の単独出力となる
 		if (is_oya_repeat(ev) || is_moji_repeat(ev)) {
 			if (_repeat_oyayubi != 0 && _repeat_moji != 0) {
 				output_oya_moji(_repeat_oyayubi, _repeat_moji);
@@ -907,7 +934,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 		
-		//E52	親指キーのリリースを検出。または対象外のキー入力を検出		初期状態に遷移
+		//E52 親指キーのリリースを検出。または対象外のキー入力を検出。初期状態に遷移
 		if (is_oya_up(ev) || is_otherkey_down(ev)) {
 			_repeat_moji = 0;
 			_repeat_oyayubi = 0;
@@ -915,7 +942,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 		
-		//E53	文字キーのリリースを検出	初期状態に遷移
+		//E53 文字キーのリリースを検出。初期状態に遷移
 		if (is_moji_up(ev)) {
 			_repeat_moji = 0;
 			_repeat_oyayubi = 0;
@@ -923,7 +950,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 
-		//E54	親指キーの押下を検出（リピート中以外のキーしか発生しない）	検出した親指キーをoyayubiにセット。_time2に時刻を記憶。_event_timerにe-oyaTimeをセット。親指キー押下中状態に遷移
+		//E54 親指キーの押下を検出（リピート中以外のキーしか発生しない）検出した親指キーをoyayubiにセット。_time2に時刻を記憶。_event_timerにe-oyaTimeをセット。親指キー押下中状態に遷移
 		if (is_oya_down(ev)) {
 			_oyayubi = ev.keyCode;
 			_time2 = get_current_time();
@@ -932,7 +959,7 @@ void handle_oyayubi_event(OYAYUBI_EVENT ev) {
 			break;
 		}
 		
-		//E55	文字キーの押下を検出（リピート中以外のキーしか発生しない）	検出した文字キーをmojiにセット。_time1に時刻を記憶。_event_timerにe-charTimeをセット。文字キー押下中状態に遷移
+		//E55 文字キーの押下を検出（リピート中以外のキーしか発生しない）検出した文字キーをmojiにセット。_time1に時刻を記憶。_event_timerにe-charTimeをセット。文字キー押下中状態に遷移
 		if (is_moji_down(ev)) {
 			_moji = ev.keyCode;
 			_time1 = get_current_time();

@@ -350,7 +350,12 @@ Boolean load_config(char* path)
 		} else if (strcmp(key, "IM")==0) {
 			printf("IM: %s\n", value);
 			set_imtype(value);
-
+		}else if (strcmp(key, "CHARTIME")==0) {
+			printf("CHARTIME: %s\n", value);
+			set_char_time(atoi(value));
+		}else if (strcmp(key, "OYATIME")==0) {
+			printf("OYATIME: %s\n", value);
+			set_oya_time(atoi(value));
 		}else if (strcmp(key, "NICOLATIME")==0) {
 			printf("NICOLATIME: %s\n", value);
 			set_nicola_time(atoi(value));
@@ -402,15 +407,18 @@ Boolean save_config(char *path)
 	fprintf(fp, "# 右親指キー　(変換キー＝HENKAN,ひらがなカタカナキー＝KATAKANAHIRAGANA)\n");
 	fprintf(fp, "ROYAKEY=HENKAN\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "# レイアウト名。(現在は NICOLA 固定)\n");
-	fprintf(fp, "#LAYOUT=NICOLA\n");
-	fprintf(fp, "\n");
 	fprintf(fp, "# ON状態とOFF状態を自動認識させる場合。現在はfcitxのみ\n");
 	fprintf(fp, "#IM=fcitx\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "# 日本語 ON/OFFキー\n");
 	fprintf(fp, "ONKEY=RIGHTALT\n");
 	fprintf(fp, "OFFKEY=RIGHTALT\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "# 親文字->親指同時打鍵検出許容期間(ms)\n");
+	fprintf(fp, "#CHARTIME=200\n");
+	fprintf(fp, "\n");
+	fprintf(fp, "# 親指->文字同時打鍵検出許容期間(ms)\n");
+	fprintf(fp, "#OYATIME=200\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "# 親指単独打鍵みなし期間(ms)\n");
 	fprintf(fp, "#NICOLATIME=50\n");
