@@ -27,3 +27,5 @@ Note. You must be able to run sudo, or need to be root with su command.
 # Configure
 Conig file is made on first run.   
 location is  `(Home Dir)/.oyainputconf`
+
+
