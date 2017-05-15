@@ -189,4 +189,5 @@ typedef struct MojiNameCode {
 		exit(EXIT_FAILURE); \
 	} while(0)
 
+#define UNUSED_VARIABLE(x) (void)(x)
 

@@ -14,6 +14,10 @@
 #include "config.h"
 #include "oyastate.h"
 
+#define MSG_PAUSED  "\royainput:    paused."
+#define MSG_RESTART "\royainput: restarted."
+
+
 
 static int do_terminate = 0;
 static char devpath[BUFSIZE+1] = {};
@@ -57,16 +61,44 @@ void set_inputdevice_path(char* new_devpath)
 	strncpy(devpath, new_devpath, BUFSIZE-1);
 }
 
-void on_term (int signal) {
-	printf("\royainput terminated (SIG=%d)\n", signal);
+void on_sigterm(int signal) {
+	UNUSED_VARIABLE(signal);
+	printf("\royainput terminated.\n");
 	do_terminate = 1;
 }
+
+void on_sigstop(int signal) {
+	UNUSED_VARIABLE(signal);
+	printf(MSG_PAUSED);
+	paused = 1;
+}
+
+void on_sigrestart(int signal) {
+	UNUSED_VARIABLE(signal);
+	printf(MSG_RESTART);
+	paused = 0;
+}
+
+void on_sigtoggle(int signal) {
+	UNUSED_VARIABLE(signal);
+	if (paused) {
+		printf(MSG_RESTART);
+		paused = 0;
+	} else {
+		printf(MSG_PAUSED);
+		paused = 1;
+	}
+}
+
 
 void set_signal_handler() {
 	sigset_t mask;
 	sigemptyset(&mask);
-	signal(SIGTERM, on_term);
-	signal(SIGINT, on_term);
+	signal(SIGTERM, on_sigterm);
+	signal(SIGINT, on_sigterm);
+	signal(SIGRTMIN, on_sigstop);
+	signal(SIGRTMIN+1, on_sigrestart);
+	signal(SIGRTMIN+2, on_sigtoggle);
 	sigaddset(&mask, SIGTERM);
 	sigaddset(&mask, SIGINT);
 	sigprocmask(SIG_UNBLOCK, &mask, NULL);
@@ -228,10 +260,10 @@ int main(int argc, char *argv[]) {
 		case KEY_PAUSE:
 			if (ie.value == 1) {
 				if (paused) {
-					printf("\royainput restarted.");
+					printf(MSG_RESTART);
 					paused = 0;
 				} else {
-					printf("\royainput paused.   ");
+					printf(MSG_PAUSED);
 					paused = 1;
 				}
 			}
@@ -246,13 +278,13 @@ int main(int argc, char *argv[]) {
 		
 			if (ie.value == 1) {
 				if (paused && on_keycode != 0 && ie.code == on_keycode) {
-					printf("\royainput restarted.");
+					printf(MSG_RESTART);
 					paused = 0;
 					write(fdo, &ie, sizeof(ie));
 					break;
 				}
 				if (! paused && off_keycode != 0 && ie.code == off_keycode) {
-					printf("\royainput paused.   ");
+					printf(MSG_PAUSED);
 					paused = 1;
 					write(fdo, &ie, sizeof(ie));
 					break;
