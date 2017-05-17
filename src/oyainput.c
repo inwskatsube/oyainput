@@ -36,12 +36,14 @@ int get_imtype() {
 }
 
 void set_imtype(char* imname) {
-	if(strcmp(imname, "fcitx")==0){
+	if(strcasecmp(imname, "fcitx")==0){
 		imtype = 1;
-	} else if(strcmp(imname, "ibus")==0){
+	} else if(strcasecmp(imname, "ibus")==0){
 		imtype = 2;
-	} else if(strcmp(imname, "uim")==0){
+	} else if(strcasecmp(imname, "uim")==0){
 		imtype = 3;
+	} else if(strcasecmp(imname, "kkc")==0 || strcasecmp(imname, "libkkc")==0){
+		imtype = 4;
 	} else {
 		imtype = 0;
 	}
@@ -55,8 +57,7 @@ void set_offkey(__u16 kc){
 	off_keycode = kc;
 }
 
-void set_inputdevice_path(char* new_devpath)
-{
+void set_inputdevice_path(char* new_devpath) {
 	printf("Keyboard Device Event File : %s\n", new_devpath);
 	strncpy(devpath, new_devpath, BUFSIZE-1);
 }
@@ -183,7 +184,10 @@ int main(int argc, char *argv[]) {
 
 	if (get_imtype() == 1 &&
 		0 != system("type fcitx-remote > /dev/null")) {
-		die("error: Fcitx is not installed!");
+		die("error: fcitx is not installed!");
+	} else if (get_imtype() == 2 &&
+		0 != system("type ibus > /dev/null")) {
+		die("error: ibus is not installed!");
 	}
 	
 	create_infotables();

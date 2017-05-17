@@ -11,6 +11,8 @@
 #include "oyainput.h"
 #include "functions.h"
 
+static char cmd_buffer[BUFSIZE] = {};
+
 // ２重起動チェック
 Boolean exist_previous(){
 	const int BUF = 120;
@@ -95,17 +97,8 @@ void put_royakey(__u16 rightOyaKeyCode) {
 	output_char(rightOyaKeyCode);
 }
 
-
-Boolean is_imeon(){
-	if (get_imtype() != 1) {
-		return TRUE;
-	}
-
-	int BUF = 2;
+Boolean is_fcitx_on() {
     FILE* pipe;
-    char buff[BUF];
-    buff[0] = '\0';
-    buff[1] = '\0';
     
 	uid_t uid = getuid();
 	uid_t euid = getegid();
@@ -116,11 +109,12 @@ Boolean is_imeon(){
 		seteuid(euid);
 		return FALSE;
 	}
-	fgets(buff, BUF, pipe);
+    memset(cmd_buffer, 0, BUFSIZE);
+	fgets(cmd_buffer, BUFSIZE, pipe);
 	pclose(pipe);
 	seteuid(euid);
 
-	int n = atoi(buff);
+	int n = atoi(cmd_buffer);
 	switch(n){
 		case 0 : return FALSE; break;
 		case 1 : return FALSE; break;
@@ -129,6 +123,43 @@ Boolean is_imeon(){
 	}
     return FALSE;
 }
+
+Boolean is_ibus_on() {
+    FILE* pipe;
+    
+	uid_t uid = getuid();
+	uid_t euid = getegid();
+
+	seteuid(uid);
+	pipe = popen("ibus engine", "r");
+	if (pipe == NULL) {
+		seteuid(euid);
+		return FALSE;
+	}
+    memset(cmd_buffer, 0, BUFSIZE);
+	fgets(cmd_buffer, BUFSIZE, pipe);
+	pclose(pipe);
+	seteuid(euid);
+
+	if (strncmp(cmd_buffer, "xkb:", 4) == 0) {
+		return FALSE;
+	}
+	if (strlen(cmd_buffer) > 0) {
+		return TRUE;
+	}
+    return FALSE;
+}
+
+Boolean is_imeon(){
+	int imtype = get_imtype();
+	if (imtype == 1) {
+		return is_fcitx_on();
+	}else if (imtype == 2) {
+		return is_ibus_on();
+	}
+	return TRUE;
+}
+
 
 /*
 void set_ime(Boolean on_flg) {

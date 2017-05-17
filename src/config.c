@@ -316,50 +316,50 @@ Boolean load_config(char* path)
 		
 		sscanf(line, "%[^=]=%s", key, value);
 		//printf("key = %s, value = %s \n", key, value);
-		if (strcmp(key,"DEVFILENO")==0) {
+		if (strcasecmp(key,"DEVFILENO")==0) {
 			if (strlen(value) > 0 ) {
 				char devpath[120] = INPUT_EVENT_PATH;
 				strcat(devpath, "event");				
 				strcat(devpath, value);				
 				set_inputdevice_path(devpath);
 			}
-		} else if (strcmp(key, "LOYAKEY")==0) {
+		} else if (strcasecmp(key, "LOYAKEY")==0) {
 			kc = keyname_to_code(value);
 			if (kc != 0) {
 				printf("LOYAKEY: %s\n", value);
 				set_left_oyakey(kc);
 			}
-		} else if (strcmp(key, "ROYAKEY")==0) {
+		} else if (strcasecmp(key, "ROYAKEY")==0) {
 			kc = keyname_to_code(value);
 			if (kc != 0) {
 				printf("ROYAKEY: %s\n", value);
 				set_right_oyakey(kc);
 			}
-		} else if (strcmp(key, "ONKEY")==0) {
+		} else if (strcasecmp(key, "ONKEY")==0) {
 			kc = keyname_to_code(value);
 			if (kc != 0) {
 				printf("ONKEY: %s\n", value);
 				set_onkey(kc);
 			}
-		} else if (strcmp(key, "OFFKEY")==0) {
+		} else if (strcasecmp(key, "OFFKEY")==0) {
 			kc = keyname_to_code(value);
 			if (kc != 0) {
 				printf("OFFKEY: %s\n", value);
 				set_offkey(kc);
 			}
-		} else if (strcmp(key, "IM")==0) {
+		} else if (strcasecmp(key, "IM")==0) {
 			printf("IM: %s\n", value);
 			set_imtype(value);
-		}else if (strcmp(key, "CHARTIME")==0) {
+		}else if (strcasecmp(key, "CHARTIME")==0) {
 			printf("CHARTIME: %s\n", value);
 			set_char_time(atoi(value));
-		}else if (strcmp(key, "OYATIME")==0) {
+		}else if (strcasecmp(key, "OYATIME")==0) {
 			printf("OYATIME: %s\n", value);
 			set_oya_time(atoi(value));
-		}else if (strcmp(key, "NICOLATIME")==0) {
+		}else if (strcasecmp(key, "NICOLATIME")==0) {
 			printf("NICOLATIME: %s\n", value);
 			set_nicola_time(atoi(value));
-		} else if (strcmp(key, "KEYADD")==0) {
+		} else if (strcasecmp(key, "KEYADD")==0) {
 			sscanf(value, "%[^:]:%s", keyname, mojiname);
 			kc = keyname_to_code(keyname);
 			mc = mojiname_to_code(mojiname);
@@ -367,7 +367,7 @@ Boolean load_config(char* path)
 				printf("KEYADD: %s=%s\n", keyname, mojiname);
 				add_key_moji(kc, mc);
 			}
-		} else if (strcmp(key, "LKEYADD")==0) {
+		} else if (strcasecmp(key, "LKEYADD")==0) {
 			sscanf(value, "%[^:]:%s", keyname, mojiname);
 			kc = keyname_to_code(keyname);
 			mc = mojiname_to_code(mojiname);
@@ -376,7 +376,7 @@ Boolean load_config(char* path)
 				add_left_key_moji(kc, mc);
 			}
 
-		} else if (strcmp(key, "RKEYADD")==0) {
+		} else if (strcasecmp(key, "RKEYADD")==0) {
 			sscanf(value, "%[^:]:%s", keyname, mojiname);
 			kc = keyname_to_code(keyname);
 			mc = mojiname_to_code(mojiname);
@@ -407,7 +407,7 @@ Boolean save_config(char *path)
 	fprintf(fp, "# 右親指キー　(変換キー＝HENKAN,ひらがなカタカナキー＝KATAKANAHIRAGANA)\n");
 	fprintf(fp, "ROYAKEY=HENKAN\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "# ON状態とOFF状態を自動認識させる場合。現在はfcitxのみ\n");
+	fprintf(fp, "# ON状態とOFF状態を自動認識させる場合。(fcitx / ibus)\n");
 	fprintf(fp, "#IM=fcitx\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "# 日本語 ON/OFFキー\n");
