@@ -9,7 +9,7 @@ SOURCES := $(shell ls $(SRC_DIR)/*.c)
 OBJS := $(subst $(SRC_DIR),$(OBJ_DIR), $(SOURCES:.c=.o)) 
 TARGET := oyainput
 SUPERUSER := root
-VERSION := 1.1
+VERSION := 1.2
 INST_LIB_DIR := /usr/local/lib/oyainput$(VERSION)
 INST_BIN_DIR := /usr/local/bin
 
