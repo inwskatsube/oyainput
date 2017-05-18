@@ -42,10 +42,34 @@ void set_imtype(char* imname) {
 		imtype = 2;
 	} else if(strcasecmp(imname, "uim")==0){
 		imtype = 3;
-	} else if(strcasecmp(imname, "kkc")==0 || strcasecmp(imname, "libkkc")==0){
-		imtype = 4;
 	} else {
 		imtype = 0;
+	}
+}
+
+void set_imtype_default() {
+	char GTK_IM_MODULE[BUFSIZE] = {};
+	char QT_IM_MODULE[BUFSIZE] = {};
+	char XMODIFIERS[BUFSIZE] = {};
+	strncpy(GTK_IM_MODULE, getenv("GTK_IM_MODULE"), BUFSIZE);
+	strncpy(QT_IM_MODULE, getenv("QT_IM_MODULE"), BUFSIZE);
+	strncpy(XMODIFIERS, getenv("XMODIFIERS"), BUFSIZE);
+	if (strncasecmp(GTK_IM_MODULE, "fcitx",BUFSIZE) == 0 &&
+		strncasecmp(QT_IM_MODULE, "fcitx",BUFSIZE) == 0 &&
+		strncasecmp(XMODIFIERS, "@im=fcitx",BUFSIZE) == 0
+	) {
+		printf("IM auto-detect: fcitx\n");
+		imtype = 1;
+	} else if(strncasecmp(GTK_IM_MODULE, "ibus",BUFSIZE) == 0 &&
+		strncasecmp(QT_IM_MODULE, "ibus",BUFSIZE) == 0 &&
+		strncasecmp(XMODIFIERS, "@im=ibus",BUFSIZE) == 0) {
+		printf("IM auto-detect: ibus\n");
+		imtype = 2;
+	} else if(strncasecmp(GTK_IM_MODULE, "uim",BUFSIZE) == 0 &&
+		strncasecmp(QT_IM_MODULE, "uim",BUFSIZE) == 0 &&
+		strncasecmp(XMODIFIERS, "@im=uim",BUFSIZE) == 0) {
+		printf("IM auto-detect: uim\n");
+		imtype = 3;
 	}
 }
 
@@ -168,6 +192,8 @@ int main(int argc, char *argv[]) {
 		die("error: Invalid user name", user_name);
 	}
 	
+	set_imtype_default();
+	
 	char confpath[BUFSIZE+1] = {};
 	strncpy(confpath, pw->pw_dir, BUFSIZE);
 	strcat(confpath, "/.oyainputconf");
@@ -221,6 +247,8 @@ int main(int argc, char *argv[]) {
 
 	sigset_t sigset;
 	sigemptyset(&sigset);
+	
+	Boolean ime_on = is_imeon();
 	
 	while(!do_terminate){
 
@@ -309,9 +337,13 @@ int main(int argc, char *argv[]) {
 				write(fdo, &ie, sizeof(ie));
 				break;
 			}
-
 			
-			if (! is_imeon()) {
+			if (ie.value==1 && is_state_first()) {
+				// check on key down only 
+				ime_on = is_imeon();
+			}
+			
+			if (! ime_on) {
 				write(fdo, &ie, sizeof(ie));
 				break;
 			}

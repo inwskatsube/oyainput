@@ -396,9 +396,9 @@ Boolean save_config(char *path)
 	if ((fp = fopen(path, "w")) == NULL) {
 		return FALSE;
 	}
-	fprintf(fp, "# キーボードのイベントデバイスファイルの番号です。\n");
+	fprintf(fp, "# キーボードのイベントデバイスファイルの番号。\n");
 	fprintf(fp, "# 複数キーボードがある場合に指定可能。\n");
-	fprintf(fp, "# (cat /proc/bus/input/devices で確認可能です）\n");
+	fprintf(fp, "# (cat /proc/bus/input/devices で確認可能）\n");
 	fprintf(fp, "#DEVFILENO=\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "# 左親指キー　(スペースキー＝SPACE, 無変換キー＝MUHENKAN)\n");
@@ -407,8 +407,8 @@ Boolean save_config(char *path)
 	fprintf(fp, "# 右親指キー　(変換キー＝HENKAN,ひらがなカタカナキー＝KATAKANAHIRAGANA)\n");
 	fprintf(fp, "ROYAKEY=HENKAN\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "# ON状態とOFF状態を自動認識させる場合。(fcitx / ibus)\n");
-	fprintf(fp, "#IM=fcitx\n");
+	fprintf(fp, "# ON状態とOFF状態を連携させるIM(fcitx/ibus)を指定。noneで自動連携を停止。\n");
+	fprintf(fp, "#IM=none\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "# 日本語 ON/OFFキー\n");
 	fprintf(fp, "ONKEY=RIGHTALT\n");

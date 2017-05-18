@@ -15,5 +15,6 @@ void add_key_moji(__u16 kc, int m);
 void add_left_key_moji(__u16 kc, int m);
 void add_right_key_moji(__u16 kc, int m);
 long get_current_time();
+int is_state_first();
 void update_event_timer();
 void handle_oyayubi_event(struct OyayubiEvent ev);
