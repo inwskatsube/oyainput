@@ -642,6 +642,10 @@ long get_current_time() {
 	return ts.tv_sec * 1000 + (ts.tv_nsec / 1000000);
 }
 
+int is_state_first() {
+	return (_state == STATE_FIRST);
+}
+
 
 void output_moji(__u16 m) {
 	int len = oyakanaTableRomajiSize;
