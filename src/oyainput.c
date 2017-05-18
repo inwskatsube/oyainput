@@ -51,22 +51,28 @@ void set_imtype_default() {
 	char GTK_IM_MODULE[BUFSIZE] = {};
 	char QT_IM_MODULE[BUFSIZE] = {};
 	char XMODIFIERS[BUFSIZE] = {};
-	strncpy(GTK_IM_MODULE, getenv("GTK_IM_MODULE"), BUFSIZE);
-	strncpy(QT_IM_MODULE, getenv("QT_IM_MODULE"), BUFSIZE);
-	strncpy(XMODIFIERS, getenv("XMODIFIERS"), BUFSIZE);
-	if (strncasecmp(GTK_IM_MODULE, "fcitx",BUFSIZE) == 0 &&
-		strncasecmp(QT_IM_MODULE, "fcitx",BUFSIZE) == 0 &&
-		strncasecmp(XMODIFIERS, "@im=fcitx",BUFSIZE) == 0
+	if (getenv("GTK_IM_MODULE")) {
+		strncpy(GTK_IM_MODULE, getenv("GTK_IM_MODULE"), BUFSIZE);
+	}
+	if (getenv("QT_IM_MODULE")) {
+		strncpy(QT_IM_MODULE, getenv("QT_IM_MODULE"), BUFSIZE);
+	}
+	if (getenv("XMODIFIERS")) {
+		strncpy(XMODIFIERS, getenv("XMODIFIERS"), BUFSIZE);
+	}
+	if (strncasecmp(GTK_IM_MODULE, "fcitx", BUFSIZE) == 0 ||
+		strncasecmp(QT_IM_MODULE, "fcitx", BUFSIZE) == 0 ||
+		strncasecmp(XMODIFIERS, "@im=fcitx", BUFSIZE) == 0
 	) {
 		printf("IM auto-detect: fcitx\n");
 		imtype = 1;
-	} else if(strncasecmp(GTK_IM_MODULE, "ibus",BUFSIZE) == 0 &&
-		strncasecmp(QT_IM_MODULE, "ibus",BUFSIZE) == 0 &&
+	} else if(strncasecmp(GTK_IM_MODULE, "ibus",BUFSIZE) == 0 ||
+		strncasecmp(QT_IM_MODULE, "ibus",BUFSIZE) == 0 ||
 		strncasecmp(XMODIFIERS, "@im=ibus",BUFSIZE) == 0) {
 		printf("IM auto-detect: ibus\n");
 		imtype = 2;
-	} else if(strncasecmp(GTK_IM_MODULE, "uim",BUFSIZE) == 0 &&
-		strncasecmp(QT_IM_MODULE, "uim",BUFSIZE) == 0 &&
+	} else if(strncasecmp(GTK_IM_MODULE, "uim",BUFSIZE) == 0 ||
+		strncasecmp(QT_IM_MODULE, "uim",BUFSIZE) == 0 ||
 		strncasecmp(XMODIFIERS, "@im=uim",BUFSIZE) == 0) {
 		printf("IM auto-detect: uim\n");
 		imtype = 3;
@@ -183,7 +189,9 @@ int main(int argc, char *argv[]) {
 	find_kbdevent_path(devpath);
 
 	char user_name[BUFSIZE+1] = {};
-	strncpy(user_name, getenv("USER"), BUFSIZE);
+	if (getenv("USER")) {
+		strncpy(user_name, getenv("USER"), BUFSIZE);
+	}
 	if (argc >= 2) {
 		strncpy(user_name, argv[1], BUFSIZE);
 	}
