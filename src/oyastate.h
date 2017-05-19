@@ -4,6 +4,7 @@
 
 Boolean is_acceptable(int keycode);
 void oyayubi_state_init();
+void reset_oyayubi_state();
 void create_infotables();
 void close_oya_state();
 void set_left_oyakey(__u16 kc);

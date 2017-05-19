@@ -404,6 +404,17 @@ void oyayubi_state_init() {
 	last_time = current_time;
 }
 
+void reset_oyayubi_state() {
+	_state = STATE_FIRST;
+	_moji = 0;
+	_oyayubi = 0;
+	_repeat_moji = 0;
+	_repeat_oyayubi = 0;
+	_time1 = 0l;
+	_time2 = 0l;
+	_event_timer = 0;
+}
+
 Boolean is_moji_key(__u16 code) {
 	if (code == e_loya_keycode || code == e_roya_keycode) {
 		return FALSE;
