@@ -42,6 +42,8 @@ void set_imtype(char* imname) {
 		imtype = 2;
 	} else if(strcasecmp(imname, "uim")==0){
 		imtype = 3;
+	} else if (strcasecmp(imname, "auto")==0){
+		//nothing to do.
 	} else {
 		imtype = 0;
 	}
