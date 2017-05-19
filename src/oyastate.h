@@ -4,7 +4,6 @@
 
 Boolean is_acceptable(int keycode);
 void oyayubi_state_init();
-void reset_oyayubi_state();
 void create_infotables();
 void close_oya_state();
 void set_left_oyakey(__u16 kc);
@@ -18,4 +17,5 @@ void add_right_key_moji(__u16 kc, int m);
 long get_current_time();
 int is_state_first();
 void update_event_timer();
+void on_otherkey_down(__u16 kc);
 void handle_oyayubi_event(struct OyayubiEvent ev);

@@ -290,6 +290,7 @@ int main(int argc, char *argv[]) {
 		case KEY_RIGHTCTRL:
 			if (ie.value == 1) {
 				ctrl_pressed = TRUE;
+				on_otherkey_down(ie.code);
 			} else if (ie.value==0) {
 				ctrl_pressed = FALSE;
 				if (pressing_key != 0) {
@@ -298,13 +299,13 @@ int main(int argc, char *argv[]) {
 					pressing_key = 0;		
 				}
 			}
-			reset_oyayubi_state();
 			write(fdo, &ie, sizeof(ie));
 			break;
 		case KEY_LEFTSHIFT:
 		case KEY_RIGHTSHIFT:
 			if (ie.value == 1) {
 				shift_pressed = TRUE;
+				on_otherkey_down(ie.code);
 			} else if (ie.value==0) {
 				shift_pressed = FALSE;
 				if (pressing_key != 0) {
@@ -313,13 +314,13 @@ int main(int argc, char *argv[]) {
 					pressing_key = 0;		
 				}
 			}
-			reset_oyayubi_state();
 			write(fdo, &ie, sizeof(ie));
 			break;
 		case KEY_LEFTALT:
 		//case KEY_RIGHTALT:
 			if (ie.value == 1) {
 				alt_pressed = TRUE;
+				on_otherkey_down(ie.code);
 			} else if (ie.value==0) {
 				alt_pressed = FALSE;
 				if (pressing_key != 0) {
@@ -328,11 +329,11 @@ int main(int argc, char *argv[]) {
 					pressing_key = 0;		
 				}
 			}
-			reset_oyayubi_state();
 			write(fdo, &ie, sizeof(ie));
 			break;
 		case KEY_PAUSE:
 			if (ie.value == 1) {
+				on_otherkey_down(ie.code);
 				if (paused) {
 					printf(MSG_RESTART);
 					paused = 0;
@@ -379,12 +380,14 @@ int main(int argc, char *argv[]) {
 						pressing_key = 0;
 					}
 				}
-
 				write(fdo, &ie, sizeof(ie));
 				break;
 			}
 
 			if (! is_acceptable(ie.code)) {
+				if (ie.value==1) {
+					on_otherkey_down(ie.code);
+				}
 				write(fdo, &ie, sizeof(ie));
 				break;
 			}

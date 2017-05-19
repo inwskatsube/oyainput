@@ -351,6 +351,7 @@ __u16 e_loya_keycode = KEY_SPACE; // KEY_MUHENKAN
 __u16 e_roya_keycode = KEY_HENKAN;
 
 static OYAYUBI_EVENT timer_ev;
+static OYAYUBI_EVENT otherkey_ev;
 
 void set_left_oyakey(__u16 kc) {
 	if (kc != 0) {
@@ -404,16 +405,6 @@ void oyayubi_state_init() {
 	last_time = current_time;
 }
 
-void reset_oyayubi_state() {
-	_state = STATE_FIRST;
-	_moji = 0;
-	_oyayubi = 0;
-	_repeat_moji = 0;
-	_repeat_oyayubi = 0;
-	_time1 = 0l;
-	_time2 = 0l;
-	_event_timer = 0;
-}
 
 Boolean is_moji_key(__u16 code) {
 	if (code == e_loya_keycode || code == e_roya_keycode) {
@@ -730,6 +721,14 @@ void update_event_timer() {
 		_event_timer = 0;
 	}
 	last_time = current_time;
+}
+
+void on_otherkey_down(__u16 kc) {
+	memset(&otherkey_ev, 0, sizeof(otherkey_ev));
+	otherkey_ev.eventType = ET_KEYDOWN;
+	otherkey_ev.isRepeat = 0;
+	otherkey_ev.keyCode = kc;
+	handle_oyayubi_event(otherkey_ev);
 }
 
 
