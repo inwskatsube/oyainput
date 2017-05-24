@@ -90,7 +90,7 @@ void set_offkey(__u16 kc){
 }
 
 void set_inputdevice_path(char* new_devpath) {
-	printf("Keyboard Device Event File : %s\n", new_devpath);
+	printf("keyboard device: %s\n", new_devpath);
 	strncpy(devpath, new_devpath, BUFSIZE-1);
 }
 
@@ -148,7 +148,7 @@ void create_user_input() {
 	// global value: fdo
 	fdo = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
 	if (fdo == -1) {
-		die("error: Failed to open uinput device event file! %s", "/dev/uinput");		
+		die("error: Failed to open uinput device event file! %s", "/dev/uinput");
 	}
 	if(ioctl(fdo, UI_SET_EVBIT, EV_SYN) < 0) die("error: ioctl");
 	if(ioctl(fdo, UI_SET_EVBIT, EV_KEY) < 0) die("error: ioctl");
@@ -170,7 +170,7 @@ void create_user_input() {
 }
 
 int main(int argc, char *argv[]) {
-	
+
 	// set console bufferring mode off.
 	setvbuf(stdout, (char*)NULL, _IONBF, 0);
 
@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
 	if (euid != 0) {
 		die("error: Only su(root) can run this program.");
 	}
-	
+
 	// initialize oyayubi state by default values.
 	oyayubi_state_init();
 
@@ -201,9 +201,9 @@ int main(int argc, char *argv[]) {
 	if (pw==NULL) {
 		die("error: Invalid user name", user_name);
 	}
-	
+
 	set_imtype_default();
-	
+
 	char confpath[BUFSIZE+1] = {};
 	strncpy(confpath, pw->pw_dir, BUFSIZE);
 	strcat(confpath, "/.oyainputconf");
@@ -212,7 +212,7 @@ int main(int argc, char *argv[]) {
 	if (! exist_file(confpath)) {
 		save_config(confpath);
 	}
-	
+
 	printf("Load config: %s\n", confpath);
 	if(! load_config(confpath)) {
 		die("error: Cannot load config file!\n");
@@ -225,12 +225,12 @@ int main(int argc, char *argv[]) {
 		0 != system("type ibus > /dev/null")) {
 		die("error: ibus is not installed!");
 	}
-	
+
 	create_infotables();
 
 	int fdi = open(devpath, O_RDONLY);
 	if (fdi == -1) {
-		die("error: Failed to open keyboard device event file! %s", devpath);		
+		die("error: Failed to open keyboard device event file! %s", devpath);
 	}
 	sleep(1); // DO NOT DELETE. need to intialize ioctl
 	ioctl(fdi, EVIOCGRAB, 1); // start hook keyboard device
@@ -257,11 +257,11 @@ int main(int argc, char *argv[]) {
 
 	sigset_t sigset;
 	sigemptyset(&sigset);
-	
+
 	Boolean ime_on = is_imeon();
-	
+
 	__u16 pressing_key = 0;
-	
+
 	while(!do_terminate){
 
 		FD_ZERO(&rfds);
@@ -278,7 +278,7 @@ int main(int argc, char *argv[]) {
 			update_event_timer();
 			continue;
 		}
-		
+
 		memset(&ie, 0, sizeof(ie));
 		if(read(fdi, &ie, sizeof(ie)) != sizeof(ie)) {
 			close_app(fdi, fdo);
@@ -296,7 +296,7 @@ int main(int argc, char *argv[]) {
 				if (pressing_key != 0) {
 					send_event(EV_KEY, pressing_key, 0);
 					send_event(EV_SYN, SYN_REPORT, 0);
-					pressing_key = 0;		
+					pressing_key = 0;
 				}
 			}
 			write(fdo, &ie, sizeof(ie));
@@ -311,7 +311,7 @@ int main(int argc, char *argv[]) {
 				if (pressing_key != 0) {
 					send_event(EV_KEY, pressing_key, 0);
 					send_event(EV_SYN, SYN_REPORT, 0);
-					pressing_key = 0;		
+					pressing_key = 0;
 				}
 			}
 			write(fdo, &ie, sizeof(ie));
@@ -326,7 +326,7 @@ int main(int argc, char *argv[]) {
 				if (pressing_key != 0) {
 					send_event(EV_KEY, pressing_key, 0);
 					send_event(EV_SYN, SYN_REPORT, 0);
-					pressing_key = 0;		
+					pressing_key = 0;
 				}
 			}
 			write(fdo, &ie, sizeof(ie));
@@ -350,7 +350,7 @@ int main(int argc, char *argv[]) {
 				write(fdo, &ie, sizeof(ie));
 				break;
 			}
-		
+
 			if (ie.value == 1) {
 				if (paused && on_keycode != 0 && ie.code == on_keycode) {
 					printf(MSG_RESTART);
@@ -391,12 +391,12 @@ int main(int argc, char *argv[]) {
 				write(fdo, &ie, sizeof(ie));
 				break;
 			}
-			
+
 			if (ie.value==1 && is_state_first()) {
-				// check on key down only 
+				// check on key down only
 				ime_on = is_imeon();
 			}
-			
+
 			if (! ime_on) {
 				write(fdo, &ie, sizeof(ie));
 				break;
@@ -416,12 +416,7 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 	}
- 
+
 	close_app(fdi,fdo);
 	return EXIT_SUCCESS;
 }
-
-
-
-
-

@@ -189,22 +189,36 @@ Boolean find_kbdevent_path(char *path) {
 
 	char buff[BUFSIZE+1] = {};
 	char *sp;
+	char *s;
 
 	FILE* pipe = popen(cmd, "r");
 	if (pipe == NULL) {
 		return FALSE;
 	}
-	fgets(buff, BUFSIZE, pipe);
-	pclose(pipe);
 
-	sp = strstr(buff,"event");
-	if ((sp - buff) + 5 >= BUFSIZE) {
+	s = fgets(buff, BUFSIZE, pipe);
+	if (! s) {
+		printf("cannot find any keyboard!\n");
+		pclose(pipe);
 		return FALSE;
 	}
-
-	strcpy(path, INPUT_EVENT_PATH);
-	strcat(path, "event");
-	strncat(path, sp+5, 1);
-
+	while(s) {
+		sp = strstr(buff, "event");
+		if (! sp) {
+			printf("Wrong keyboard info\n");
+			pclose(pipe);
+			return FALSE;
+		}
+		memset(path, 0, BUFSIZE);
+		strcpy(path, INPUT_EVENT_PATH);
+		strcat(path, "event");
+		strncat(path, sp + 5, 1);
+		printf("keyboard detected: %s", sp+5);
+		s = fgets(buff, BUFSIZE, pipe);
+	}
+	if (path) {
+		printf("(default) keyboard device: %s\n", path);
+	}
+	pclose(pipe);
 	return TRUE;
 }
