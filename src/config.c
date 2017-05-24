@@ -313,14 +313,14 @@ Boolean load_config(char* path)
 		trim(line);
 		if(strcmp(line,"\n")==0) continue;
 		if(strncmp(line,"#",1)==0) continue;
-		
+
 		sscanf(line, "%[^=]=%s", key, value);
 		//printf("key = %s, value = %s \n", key, value);
 		if (strcasecmp(key,"DEVFILENO")==0) {
 			if (strlen(value) > 0 ) {
 				char devpath[120] = INPUT_EVENT_PATH;
-				strcat(devpath, "event");				
-				strcat(devpath, value);				
+				strcat(devpath, "event");
+				strcat(devpath, value);
 				set_inputdevice_path(devpath);
 			}
 		} else if (strcasecmp(key, "LOYAKEY")==0) {
@@ -411,8 +411,8 @@ Boolean save_config(char *path)
 	fprintf(fp, "#IM=auto\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "# 日本語 ON/OFFキー\n");
-	fprintf(fp, "ONKEY=RIGHTALT\n");
-	fprintf(fp, "OFFKEY=RIGHTALT\n");
+	fprintf(fp, "#ONKEY=RIGHTALT\n");
+	fprintf(fp, "#OFFKEY=RIGHTALT\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "# 親文字->親指同時打鍵検出許容期間(ms)\n");
 	fprintf(fp, "#CHARTIME=200\n");
@@ -425,7 +425,7 @@ Boolean save_config(char *path)
 	fprintf(fp, "\n");
 
 	fclose(fp);
-	
+
 	chmod(path, 0666);
 	return TRUE;
 }
