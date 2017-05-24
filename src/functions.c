@@ -6,6 +6,7 @@
 #include <linux/uinput.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include "common.h"
 #include "oyainput.h"
@@ -182,43 +183,45 @@ Boolean exist_file(char *path) {
 	return TRUE;
 }
 
-Boolean find_kbdevent_path(char *path) {
-	char cmd[] = GREP_CMD " -E 'Handlers|EV=' /proc/bus/input/devices | "\
-		GREP_CMD " -B1 'EV=1[02]001[3Ff]' | "\
-		GREP_CMD " -Eo 'event[0-9]+'";
+Boolean find_kbdevent_info(KBDDEVINFO *devs, int* devcnt, int maxdevs) {
+	char cmd[] = GREP_CMD " -E 'Name=|Handlers|EV=' /proc/bus/input/devices | "\
+		GREP_CMD " -B2 'EV=1[02]001[3Ff]'";
 
-	char buff[BUFSIZE+1] = {};
+	char buff1[BUFSIZE+1] = {};
+	char buff2[BUFSIZE+1] = {};
+	char buff3[BUFSIZE+1] = {};
+	memset(devs, 0, sizeof(KBDDEVINFO) * maxdevs);
+	KBDDEVINFO *devp = devs;
+
 	char *sp;
-	char *s;
+	*devcnt = 0;
 
 	FILE* pipe = popen(cmd, "r");
 	if (pipe == NULL) {
 		return FALSE;
 	}
+	do {
+		memset(buff1, 0, BUFSIZE);
+		memset(buff2, 0, BUFSIZE);
+		memset(buff3, 0, BUFSIZE);
+		if (! fgets(buff1, BUFSIZE, pipe)) break;
+		if (! fgets(buff2, BUFSIZE, pipe)) break;
+		if (! fgets(buff3, BUFSIZE, pipe)) break;
 
-	s = fgets(buff, BUFSIZE, pipe);
-	if (! s) {
-		printf("cannot find any keyboard!\n");
-		pclose(pipe);
-		return FALSE;
-	}
-	while(s) {
-		sp = strstr(buff, "event");
-		if (! sp) {
-			printf("Wrong keyboard info\n");
-			pclose(pipe);
-			return FALSE;
+		sp = strstr(buff1, "Name=");
+		if (! sp) break;
+		strncpy(devp->name, sp+6, strlen(sp+6)-2); // 2 means double quote + line feed
+
+		sp = strstr(buff2, "event");
+		if (! sp) break;
+		strncpy(devp->devno, sp + 5, 2);
+		if (!isdigit(devp->devno[1])) {
+			devp->devno[1] = 0;
 		}
-		memset(path, 0, BUFSIZE);
-		strcpy(path, INPUT_EVENT_PATH);
-		strcat(path, "event");
-		strncat(path, sp + 5, 1);
-		printf("keyboard detected: %s", sp+5);
-		s = fgets(buff, BUFSIZE, pipe);
-	}
-	if (path) {
-		printf("(default) keyboard device: %s\n", path);
-	}
+		*devcnt = (*devcnt) + 1;
+		devp++;
+	} while(devp - devs < maxdevs);
+
 	pclose(pipe);
 	return TRUE;
 }

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include<linux/input.h>
+#include <linux/input.h>
 #include <linux/uinput.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -188,7 +188,26 @@ int main(int argc, char *argv[]) {
 	oyayubi_state_init();
 
 	// try search keyboard input device event file form /dev/input/event0-9
-	find_kbdevent_path(devpath);
+	KBDDEVINFO devs[5];
+	int devcnt;
+	int usedevno = 0;
+	find_kbdevent_info(devs, &devcnt, 5);
+	if (devcnt == 0) {
+		die("error: Cannot find keyboard device.");
+	} else if (devcnt >= 2) {
+		printf("multiple keyboard is detected.\n");
+		for (int i = 0;i < devcnt; i++) {
+			printf("%d: %s\n", i, devs[i].name);
+		}
+		printf("Enter keyboard number:");
+		scanf("%d", &usedevno);
+		if (usedevno < 0 || usedevno > devcnt - 1) {
+			usedevno = 0;
+		}
+	}
+	strcpy(devpath, INPUT_EVENT_PATH);
+	strcat(devpath, "event");
+	strncat(devpath, devs[usedevno].devno, 2);
 
 	char user_name[BUFSIZE+1] = {};
 	if (getenv("USER")) {

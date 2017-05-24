@@ -316,14 +316,15 @@ Boolean load_config(char* path)
 
 		sscanf(line, "%[^=]=%s", key, value);
 		//printf("key = %s, value = %s \n", key, value);
-		if (strcasecmp(key,"DEVFILENO")==0) {
+		/*if (strcasecmp(key,"DEVFILENO")==0) {
 			if (strlen(value) > 0 ) {
 				char devpath[120] = INPUT_EVENT_PATH;
 				strcat(devpath, "event");
 				strcat(devpath, value);
 				set_inputdevice_path(devpath);
 			}
-		} else if (strcasecmp(key, "LOYAKEY")==0) {
+		} else */
+		if (strcasecmp(key, "LOYAKEY")==0) {
 			kc = keyname_to_code(value);
 			if (kc != 0) {
 				printf("LOYAKEY: %s\n", value);
@@ -396,11 +397,6 @@ Boolean save_config(char *path)
 	if ((fp = fopen(path, "w")) == NULL) {
 		return FALSE;
 	}
-	fprintf(fp, "# キーボードのイベントデバイスファイルの番号。\n");
-	fprintf(fp, "# 複数キーボードがある場合に指定可能。\n");
-	fprintf(fp, "# (cat /proc/bus/input/devices で確認可能）\n");
-	fprintf(fp, "#DEVFILENO=\n");
-	fprintf(fp, "\n");
 	fprintf(fp, "# 左親指キー　(スペースキー＝SPACE, 無変換キー＝MUHENKAN)\n");
 	fprintf(fp, "LOYAKEY=SPACE\n");
 	fprintf(fp, "\n");

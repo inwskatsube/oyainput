@@ -1,7 +1,7 @@
 /*
  * common.h
  */
- 
+
 #ifndef Boolean
 #define Boolean int
 #endif
@@ -152,6 +152,10 @@
 #define LEFTOYA 1
 #define RIGHTOYA 2
 
+#define IMTYPE_NONE 0
+#define IMTYPE_FCITX 1
+#define IMTYPE_IBUS 2
+#define IMTYPE_UIM 3
 
 typedef struct keymapinfo {
 	__u16 keyCode;
@@ -167,7 +171,7 @@ typedef struct romajiinfo {
 typedef struct OyayubiEvent {
 	int eventType;
 	__u16 keyCode;
-	int isRepeat;	
+	int isRepeat;
 } OYAYUBI_EVENT;
 
 typedef struct KeyNameCode {
@@ -180,6 +184,12 @@ typedef struct MojiNameCode {
 	int value;
 } MOJINAMECODE;
 
+typedef struct KbdDevInfo {
+    char name[BUFSIZE];
+    char devno[3];
+} KBDDEVINFO;
+
+
 // standard path
 #define INPUT_EVENT_PATH  "/dev/input/"
 #define GREP_CMD "/bin/grep"
@@ -190,4 +200,3 @@ typedef struct MojiNameCode {
 	} while(0)
 
 #define UNUSED_VARIABLE(x) (void)(x)
-
