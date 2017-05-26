@@ -263,7 +263,7 @@ MOJINAMECODE mojiNameCodeTable[] = {
 	{"QUESTION",91},
 	{"SLASH",92},
 	{"TILDE",93},
-	{"LKAGI",94l},
+	{"LKAGI",94},
 	{"RKAGI",95},
 	{"LBRACKET",96},
 	{"RBRACKET",97},
@@ -286,7 +286,9 @@ MOJINAMECODE mojiNameCodeTable[] = {
 	{"KUTOUTEN",114},
 	{"NAKAGURO",115},
 	{"DAKUTEN",116},
-	{"HANDAKUTEN",117}
+	{"HANDAKUTEN",117},
+	{"LKAKKO",118},
+	{"RKAKKO",119},
 };
 
 
