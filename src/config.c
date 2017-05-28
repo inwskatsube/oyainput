@@ -412,7 +412,7 @@ Boolean save_config(char *path)
 	fprintf(fp, "#ONKEY=RIGHTALT\n");
 	fprintf(fp, "#OFFKEY=RIGHTALT\n");
 	fprintf(fp, "\n");
-	fprintf(fp, "# 親文字->親指同時打鍵検出許容期間(ms)\n");
+	fprintf(fp, "# 文字->親指同時打鍵検出許容期間(ms)\n");
 	fprintf(fp, "#CHARTIME=200\n");
 	fprintf(fp, "\n");
 	fprintf(fp, "# 親指->文字同時打鍵検出許容期間(ms)\n");
