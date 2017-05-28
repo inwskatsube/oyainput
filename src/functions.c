@@ -77,11 +77,21 @@ void put_romaji(ROMAJI_INFO ri) {
 		if (ri.outCode1 != 0 ) {
 			output_char(ri.outCode1);
 		}
-		if (ri.outCode2 != 0 ) {
-			output_char(ri.outCode2);
-		}
-		if (ri.outCode3 != 0 ) {
-			output_char(ri.outCode3);
+
+		if (ri.outCode2 == KEY_LEFTSHIFT) {
+			send_event(EV_KEY, KEY_LEFTSHIFT, 1);
+			if (ri.outCode3 != 0 ) {
+				output_char(ri.outCode3);
+			}
+			send_event(EV_KEY, KEY_LEFTSHIFT, 0);
+			send_event(EV_SYN, SYN_REPORT, 0);
+		} else {
+			if (ri.outCode2 != 0 ) {
+				output_char(ri.outCode2);
+			}
+			if (ri.outCode3 != 0 ) {
+				output_char(ri.outCode3);
+			}
 		}
 	}
 
