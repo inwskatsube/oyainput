@@ -195,7 +195,7 @@ Boolean exist_file(char *path) {
 
 Boolean find_kbdevent_info(KBDDEVINFO *devs, int* devcnt, int maxdevs) {
 	char cmd[] = GREP_CMD " -E 'Name=|Handlers|EV=' /proc/bus/input/devices | "\
-		GREP_CMD " -B2 'EV=1[02]001[3Ff]'";
+		GREP_CMD " -B2 -- 'EV=1[02]001[3Ff]' | " GREP_CMD " -v '^--$'";
 
 	char buff1[BUFSIZE+1] = {};
 	char buff2[BUFSIZE+1] = {};
