@@ -26,9 +26,18 @@ static int paused = 0;
 static int imtype = 0; // (0: none, 1:fcitx, 2:ibus, 3:uim)
 static __u16 on_keycode = 0;
 static __u16 off_keycode = 0;
+static char keyboardname[BUFSIZE+1] = {};
 
 int get_kbdevie_output() {
 	return fdo;
+}
+
+void set_keyboardname(char* name) {
+	strncpy(keyboardname, name, BUFSIZE);
+}
+
+const char* get_keyboardname() {
+	return keyboardname;
 }
 
 int get_imtype() {
@@ -187,28 +196,6 @@ int main(int argc, char *argv[]) {
 	// initialize oyayubi state by default values.
 	oyayubi_state_init();
 
-	// try search keyboard input device event file form /dev/input/event0-9
-	KBDDEVINFO devs[5];
-	int devcnt;
-	int usedevno = 0;
-	find_kbdevent_info(devs, &devcnt, 5);
-	if (devcnt == 0) {
-		die("error: Cannot find keyboard device.");
-	} else if (devcnt >= 2) {
-		printf("multiple keyboard is detected.\n");
-		for (int i = 0;i < devcnt; i++) {
-			printf("%d: %s\n", i, devs[i].name);
-		}
-		printf("Enter keyboard number:");
-		scanf("%d", &usedevno);
-		if (usedevno < 0 || usedevno > devcnt - 1) {
-			usedevno = 0;
-		}
-	}
-	strcpy(devpath, INPUT_EVENT_PATH);
-	strcat(devpath, "event");
-	strncat(devpath, devs[usedevno].devno, 2);
-
 	char user_name[BUFSIZE+1] = {};
 	if (getenv("USER")) {
 		strncpy(user_name, getenv("USER"), BUFSIZE);
@@ -236,6 +223,42 @@ int main(int argc, char *argv[]) {
 	if(! load_config(confpath)) {
 		die("error: Cannot load config file!\n");
 	}
+
+	// try search keyboard input device event file form /dev/input/event0-9
+	KBDDEVINFO devs[5];
+	int devcnt;
+	int usedevno = -1;
+	find_kbdevent_info(devs, &devcnt, 5);
+	if (devcnt == 0) {
+		die("error: Cannot find keyboard device.");
+	} else if (devcnt >= 2) {
+		printf("multiple keyboard is detected.\n");
+		if (strlen(get_keyboardname()) > 0) {
+			for (int i = 0;i < devcnt; i++) {
+				if (strncmp(devs[i].name, get_keyboardname(), strlen(get_keyboardname())) == 0) {
+					usedevno = i;
+					printf("use keyboard '%s'\n", devs[usedevno].name);
+					break;
+				}
+			}
+			if (usedevno < 0) {
+				printf("keyboardname '%s' not found\n\n", get_keyboardname());
+			}
+		}
+		if (usedevno < 0) {
+			for (int i = 0;i < devcnt; i++) {
+				printf("%d: %s\n", i, devs[i].name);
+			}
+			printf("Enter keyboard number:");
+			scanf("%d", &usedevno);
+		}
+		if (usedevno < 0 || usedevno > devcnt - 1) {
+			usedevno = 0;
+		}
+	}
+	strcpy(devpath, INPUT_EVENT_PATH);
+	strcat(devpath, "event");
+	strncat(devpath, devs[usedevno].devno, 2);
 
 	if (get_imtype() == 1 &&
 		0 != system("type fcitx-remote > /dev/null")) {

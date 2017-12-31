@@ -326,7 +326,10 @@ Boolean load_config(char* path)
 				set_inputdevice_path(devpath);
 			}
 		} else */
-		if (strcasecmp(key, "LOYAKEY")==0) {
+		if (strcasecmp(key, "KEYBOARDNAME")==0) {
+			printf("KEYBOARDNAME: %s\n", value);
+			set_keyboardname(value);
+		} else if (strcasecmp(key, "LOYAKEY")==0) {
 			kc = keyname_to_code(value);
 			if (kc != 0) {
 				printf("LOYAKEY: %s\n", value);
@@ -399,6 +402,9 @@ Boolean save_config(char *path)
 	if ((fp = fopen(path, "w")) == NULL) {
 		return FALSE;
 	}
+	fprintf(fp, "# キーボード名\n");
+	fprintf(fp, "#KEYBOARDNAME=XXXX\n");
+	fprintf(fp, "\n");
 	fprintf(fp, "# 左親指キー　(スペースキー＝SPACE, 無変換キー＝MUHENKAN)\n");
 	fprintf(fp, "LOYAKEY=SPACE\n");
 	fprintf(fp, "\n");
