@@ -3,6 +3,8 @@
  */
 
 int get_kbdevie_output();
+void set_keyboardname(char* value);
+const char* get_keyboardname();
 void set_imtype(char* imname);
 int get_imtype();
 void set_inputdevice_path(char * new_devpath);
