@@ -196,6 +196,7 @@ int main(int argc, char *argv[]) {
 	// initialize oyayubi state by default values.
 	oyayubi_state_init();
 
+
 	char user_name[BUFSIZE+1] = {};
 	if (getenv("USER")) {
 		strncpy(user_name, getenv("USER"), BUFSIZE);
@@ -255,6 +256,8 @@ int main(int argc, char *argv[]) {
 		if (usedevno < 0 || usedevno > devcnt - 1) {
 			usedevno = 0;
 		}
+	} else {
+		usedevno = 0;
 	}
 	strcpy(devpath, INPUT_EVENT_PATH);
 	strcat(devpath, "event");
