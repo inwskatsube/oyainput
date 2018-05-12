@@ -333,10 +333,11 @@ int main(int argc, char *argv[]) {
 		switch(ie.code) {
 		case KEY_LEFTCTRL:
 		case KEY_RIGHTCTRL:
+		case KEY_CAPSLOCK:
 			if (ie.value == 1) {
 				ctrl_pressed = TRUE;
 				on_otherkey_down(ie.code);
-			} else if (ie.value==0) {
+			} else if (ie.value == 0) {
 				ctrl_pressed = FALSE;
 				if (pressing_key != 0) {
 					send_event(EV_KEY, pressing_key, 0);
@@ -351,7 +352,7 @@ int main(int argc, char *argv[]) {
 			if (ie.value == 1) {
 				shift_pressed = TRUE;
 				on_otherkey_down(ie.code);
-			} else if (ie.value==0) {
+			} else if (ie.value == 0) {
 				shift_pressed = FALSE;
 				if (pressing_key != 0) {
 					send_event(EV_KEY, pressing_key, 0);
@@ -366,7 +367,7 @@ int main(int argc, char *argv[]) {
 			if (ie.value == 1) {
 				alt_pressed = TRUE;
 				on_otherkey_down(ie.code);
-			} else if (ie.value==0) {
+			} else if (ie.value == 0) {
 				alt_pressed = FALSE;
 				if (pressing_key != 0) {
 					send_event(EV_KEY, pressing_key, 0);
@@ -418,9 +419,9 @@ int main(int argc, char *argv[]) {
 
 			if (shift_pressed || ctrl_pressed || alt_pressed) {
 				// CTRL DOWN -> SPACE DOWN -> CTRL UP -> SPACE UP
-				if (ie.value==1) {
+				if (ie.value == 1) {
 					pressing_key = ie.code;
-				} else if (ie.value==0) {
+				} else if (ie.value == 0) {
 					if (ie.code == pressing_key) {
 						pressing_key = 0;
 					}
@@ -430,14 +431,14 @@ int main(int argc, char *argv[]) {
 			}
 
 			if (! is_acceptable(ie.code)) {
-				if (ie.value==1) {
+				if (ie.value == 1) {
 					on_otherkey_down(ie.code);
 				}
 				write(fdo, &ie, sizeof(ie));
 				break;
 			}
 
-			if (ie.value==1 && is_state_first()) {
+			if (ie.value == 1 && is_state_first()) {
 				// check on key down only
 				ime_on = is_imeon();
 			}
@@ -450,10 +451,10 @@ int main(int argc, char *argv[]) {
 			memset(&oe, 0, sizeof(oe));
 			oe.eventType = ET_KEYDOWN;
 			oe.isRepeat = 0;
-			if (ie.value==0) {
+			if (ie.value == 0) {
 				oe.eventType = ET_KEYUP;
-			} else if (ie.value==1) {
-			} else if (ie.value==2) {
+			} else if (ie.value == 1) {
+			} else if (ie.value == 2) {
 				oe.isRepeat = 1;
 			}
 			oe.keyCode = ie.code;
