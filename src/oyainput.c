@@ -303,7 +303,7 @@ int main(int argc, char *argv[]) {
 	sigset_t sigset;
 	sigemptyset(&sigset);
 
-	Boolean ime_on = is_imeon();
+	Boolean ime_on = is_imeon(pw->pw_dir);
 
 	__u16 pressing_key = 0;
 
@@ -440,7 +440,7 @@ int main(int argc, char *argv[]) {
 
 			if (ie.value == 1 && is_state_first()) {
 				// check on key down only
-				ime_on = is_imeon();
+				ime_on = is_imeon(user_name);
 			}
 
 			if (! ime_on) {
