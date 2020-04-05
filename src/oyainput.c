@@ -440,7 +440,7 @@ int main(int argc, char *argv[]) {
 
 			if (ie.value == 1 && is_state_first()) {
 				// check on key down only
-				ime_on = is_imeon(user_name);
+				ime_on = is_imeon(pw->pw_dir);
 			}
 
 			if (! ime_on) {
