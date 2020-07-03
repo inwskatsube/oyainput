@@ -105,12 +105,17 @@ void put_royakey(__u16 rightOyaKeyCode) {
 	output_char(rightOyaKeyCode);
 }
 
-Boolean is_fcitx_on() {
+Boolean is_fcitx_on(char *home_dir) {
 	uid_t uid = getuid();
 	uid_t euid = getegid();
 
+	char cmd[BUFSIZE];
+	if (snprintf(cmd, BUFSIZE, "HOME=%s fcitx-remote", home_dir) > BUFSIZE) {
+		die("error: Username is too long.");
+	}
+
 	seteuid(uid);
-	FILE* pipe = popen("fcitx-remote", "r");
+	FILE* pipe = popen(cmd, "r");
 	if (pipe == NULL) {
 		seteuid(euid);
 		return FALSE;
@@ -154,10 +159,10 @@ Boolean is_ibus_on() {
 	return FALSE;
 }
 
-Boolean is_imeon(){
+Boolean is_imeon(char *home_dir){
 	int imtype = get_imtype();
 	if (imtype == 1) {
-		return is_fcitx_on();
+		return is_fcitx_on(home_dir);
 	}else if (imtype == 2) {
 		return is_ibus_on();
 	}
