@@ -162,7 +162,9 @@ void create_user_input() {
 	if(ioctl(fdo, UI_SET_EVBIT, EV_SYN) < 0) die("error: ioctl");
 	if(ioctl(fdo, UI_SET_EVBIT, EV_KEY) < 0) die("error: ioctl");
 	if(ioctl(fdo, UI_SET_EVBIT, EV_MSC) < 0) die("error: ioctl");
-	for(int i = 0; i < KEY_MAX; ++i)
+	printf("KEY_MAX: %d", KEY_MAX);
+	//for(int i = 0; i < KEY_MAX-1; ++i)
+	for(int i = 0; i < 0x240; ++i)
 		if(ioctl(fdo, UI_SET_KEYBIT, i) < 0) die("error: ioctl");
 
 	struct uinput_user_dev uidev;
